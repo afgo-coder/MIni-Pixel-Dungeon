@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(Collider2D))]
@@ -12,14 +12,10 @@ public class Bullet : MonoBehaviour
     public int damage = 1;
 
     [Header("Pierce")]
-    [Tooltip("0ÀÌ¸é °üÅë ¾øÀ½(Ã¹ Àû ¸ÂÀ¸¸é »èÁ¦). 1ÀÌ¸é 1¸¶¸® °üÅë(ÃÑ 2¸¶¸®±îÁö ¸ÂÈû)")]
     public int pierce = 0;
 
     [Header("Hit Filter")]
-    [Tooltip("ÃÑ¾ËÀÌ °Ë»çÇÒ ·¹ÀÌ¾î")]
     public LayerMask hitMask;
-
-    [Tooltip("Ä³½ºÆ® °Å¸® º¸Á¤(³Ê¹« µü ºÙ¾î¼­ ¸ÂÀ» ¶§ Æ¨±è ¹æÁö)")]
     public float skin = 0.02f;
 
     private Rigidbody2D rb;
@@ -29,7 +25,6 @@ public class Bullet : MonoBehaviour
     private int remainingPierce;
     private bool killed;
 
-    // Cast °á°ú Àç»ç¿ë(ÇÒ´ç ÁÙÀÌ±â)
     private readonly RaycastHit2D[] castHits = new RaycastHit2D[8];
 
     void Awake()
@@ -41,27 +36,43 @@ public class Bullet : MonoBehaviour
         rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         rb.interpolation = RigidbodyInterpolation2D.Interpolate;
 
-        // Triggerµç ¾Æ´Ïµç »ó°ü¾øÁö¸¸, º¸Åë ÃÑ¾ËÀº Trigger·Î µÎ´Â ÆíÀÌ ÆíÇÔ
-        // (º®/Àû ÆÇÁ¤¸¸ ÇÒ °Å¶ó¸é)
-        // col.isTrigger = true;
+        // ë³´í†µ ì´ì•Œì€ Trigger ê¶Œì¥
+        col.isTrigger = true;
     }
 
-    void OnEnable()
+ 
+    /// ë¬´ê¸°ì—ì„œ ìƒì„± ì§í›„ ìŠ¤íƒ¯ ì£¼ì…ìš©
+    public void Init(int dmg, int prc, float spd, float lt, LayerMask mask, float sk = 0.02f)
     {
-        killed = false;
-        lifeTimer = lifeTime;
+        damage = dmg;
+        pierce = prc;
+        speed = spd;
+        lifeTime = lt;
+        hitMask = mask;
+        skin = sk;
 
-        remainingPierce = pierce;
+        lifeTimer = lifeTime;        // ìˆ˜ëª… íƒ€ì´ë¨¸ ì‹œì‘
+        remainingPierce = pierce;    // ê´€í†µ íšŸìˆ˜ ì´ˆê¸°í™”
+        killed = false;              // (í’€ë§ ëŒ€ë¹„) í˜¹ì‹œ trueì˜€ìœ¼ë©´ ì´ˆê¸°í™”
+    }
 
-        // ¹ß»ç ¹æÇâ(ÇöÀç È¸Àü ±âÁØ right)
-        rb.linearVelocity = (Vector2)transform.right * speed;
+    /// <summary>
+    /// ìŠ¤íƒ¯ ì£¼ì… ëë‚œ ë’¤ ë§ˆì§€ë§‰ì— í˜¸ì¶œí•´ì„œ ë°œì‚¬
+    /// </summary>
+    public void Fire(Vector2 dir)
+    {
+        if (dir.sqrMagnitude < 0.0001f) dir = Vector2.right;
+        dir.Normalize();
+
+        // íšŒì „ë„ ë§ì¶°ë‘ë©´ rb.Cast ë°©í–¥/transform.rightê°€ ì¼ì¹˜í•¨
+        transform.right = dir;
+        rb.linearVelocity = dir * speed;
     }
 
     void FixedUpdate()
     {
         if (killed) return;
 
-        // ¼ö¸í Ã³¸®(Invoke ´ë½Å Å¸ÀÌ¸Ó)
         lifeTimer -= Time.fixedDeltaTime;
         if (lifeTimer <= 0f)
         {
@@ -69,13 +80,10 @@ public class Bullet : MonoBehaviour
             return;
         }
 
-        // ÇöÀç ÇÁ·¹ÀÓ¿¡ ÀÌµ¿ÇÒ °Å¸®¸¸Å­ "½ºÀ¬"ÇØ¼­ ¸ÕÀú ¸Â´Â °ÍÀ» Ã£À½
         Vector2 v = rb.linearVelocity;
         float dist = v.magnitude * Time.fixedDeltaTime;
-
         if (dist <= 0.0001f) return;
 
-        // ContactFilter ±¸¼º (Triggerµµ ¸ÂÃß°í ½ÍÀ¸¸é useTriggers = true)
         ContactFilter2D filter = new ContactFilter2D
         {
             useLayerMask = true,
@@ -87,7 +95,6 @@ public class Bullet : MonoBehaviour
 
         if (hitCount > 0)
         {
-            // °¡Àå °¡±î¿î È÷Æ® Ã£±â
             int best = -1;
             float bestDist = float.MaxValue;
 
@@ -107,7 +114,6 @@ public class Bullet : MonoBehaviour
             {
                 var hit = castHits[best];
 
-                // Ãæµ¹ ÁöÁ¡ ¹Ù·Î ¾Õ¿¡ À§Ä¡½ÃÅ°°í(°ãÄ§ ¹æÁö)
                 Vector2 newPos = hit.point - v.normalized * skin;
                 rb.position = newPos;
 
@@ -116,9 +122,9 @@ public class Bullet : MonoBehaviour
         }
     }
 
-    // È¤½Ã Cast¿¡¼­ ³õÄ¡´Â °æ¿ì¸¦ ´ëºñÇÑ "º¸Çè"
     void OnTriggerEnter2D(Collider2D other)
-    {
+    {        
+
         if (killed) return;
         if (((1 << other.gameObject.layer) & hitMask) == 0) return;
 
@@ -129,38 +135,36 @@ public class Bullet : MonoBehaviour
     {
         if (killed) return;
 
-
-        // Àû
+        // ì 
         if (other.CompareTag("Enemy"))
         {
             IDamageable dmg = other.GetComponentInParent<IDamageable>();
-            if (dmg != null)
-                dmg.TakeDamage(damage);
+            if (dmg != null) dmg.TakeDamage(damage);
 
-            // °üÅë Ã³¸®
             if (remainingPierce > 0)
             {
                 remainingPierce--;
-                // °üÅëÀÌ¸é °è¼Ó ³¯¾Æ°¡°Ô µÎµÇ, °°Àº ÇÁ·¹ÀÓ¿¡ ¿¬¼Ó ÆÇÁ¤ ¹æÁö¿ëÀ¸·Î
-                // ¾ÆÁÖ »ìÂ¦ ¾ÕÀ¸·Î ¹Ğ¾îÁÜ(°ãÄ§ ¹æÁö)
                 rb.position += (Vector2)transform.right * skin;
                 return;
             }
 
             Kill();
-            return;
         }
     }
+
     private void OnBecameInvisible()
     {
         Destroy(gameObject);
     }
+
     private void Kill()
     {
         if (killed) return;
         killed = true;
         Destroy(gameObject);
     }
+
+
 
 
 }

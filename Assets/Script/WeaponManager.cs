@@ -38,6 +38,8 @@ public class WeaponManager : MonoBehaviour
         // 총구 자동 연결
         if (autoGun != null)
         {
+            autoGun.SetWeapon(data);
+
             Transform fp = currentWeapon.transform.Find("FirePoint");
             if (fp != null)
                 autoGun.firePoint = fp;

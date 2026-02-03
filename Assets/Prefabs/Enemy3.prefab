@@ -13,7 +13,8 @@ GameObject:
   - component: {fileID: 8463465067625855312}
   - component: {fileID: 7951805478437595175}
   - component: {fileID: 1639659840539363521}
-  - component: {fileID: 3914420466758762577}
+  - component: {fileID: 5056502274331308101}
+  - component: {fileID: 2003208778519970177}
   m_Layer: 3
   m_Name: Enemy3
   m_TagString: Enemy
@@ -186,7 +187,7 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.79097766, y: 0.87}
   m_EdgeRadius: 0
---- !u!114 &3914420466758762577
+--- !u!114 &5056502274331308101
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -195,7 +196,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 4280266138508223626}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c33b45aee6b32a04d92add16af2165ff, type: 3}
+  m_Script: {fileID: 11500000, guid: 3a788ea77175a99409243a44a798b8b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 2
@@ -204,3 +205,21 @@ MonoBehaviour:
   ani: {fileID: 8463465067625855312}
   spriter: {fileID: 4574995544751561572}
   target: {fileID: 0}
+  hpBarPrefab: {fileID: 2764991719352572303, guid: 78e5741224f6a3e4e89eaf61b502c801, type: 3}
+  hpBarOffset: {x: 0, y: 0.8, z: 0}
+  hpBarVisibleTime: 2
+--- !u!114 &2003208778519970177
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4280266138508223626}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f549b573d48fafd44962f3e4a0d4f362, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  expValue: 20
+  healPickupPrefab: {fileID: 394003410894063801, guid: 17fbcf69ca19fcd428ceccda00a33cc3, type: 3}
+  healDropChance: 0.1
