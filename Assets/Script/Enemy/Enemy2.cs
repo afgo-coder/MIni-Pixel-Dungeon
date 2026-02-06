@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class Enemy2 : MonoBehaviour, IDamageable
 {
@@ -6,15 +6,24 @@ public class Enemy2 : MonoBehaviour, IDamageable
     public float stopDistance = 0.2f;
     public int maxHP = 5;
     public int currentHP;
+
     public float hitStopTime = 0.12f;
     public Animator ani;
     public SpriteRenderer spriter;
     public Transform target;
 
-    bool isDead;
+    [Header("World HP Bar")]
+    public WorldHPBar hpBarPrefab;                 // ì›”ë“œ ì²´ë ¥ë°” í”„ë¦¬íŒ¹(Inspector ì—°ê²°)
+    public Vector3 hpBarOffset = new Vector3(0f, 0.5f, 0f);
+    public float hpBarVisibleTime = 2f;            // í”¼ê²© í›„ ëª‡ ì´ˆ í‘œì‹œ
+    WorldHPBar hpBarInstance;
+
+    public bool isDead;
     bool isHit;
     Rigidbody2D rb;
     RigidbodyConstraints2D originalConstraints;
+
+    public System.Action<Enemy2> OnDied;
 
     void Start()
     {
@@ -45,7 +54,7 @@ public class Enemy2 : MonoBehaviour, IDamageable
        
         transform.Translate(dir * moveSpeed * Time.deltaTime, Space.World);
 
-        // ÁÂ¿ì µÚÁı±â(¼±ÅÃ)
+        // ì¢Œìš° ë’¤ì§‘ê¸°(ì„ íƒ)
         if (spriter != null)
         {
             if (dir.x > 0.01f) spriter.flipX = false;
@@ -59,6 +68,8 @@ public class Enemy2 : MonoBehaviour, IDamageable
 
         currentHP -= dmg;
 
+        ShowHpBar();
+
         if (!isHit)
             StartCoroutine(HitStop(hitStopTime));
 
@@ -68,6 +79,28 @@ public class Enemy2 : MonoBehaviour, IDamageable
             Die();
     }
 
+    void ShowHpBar()
+    {
+        if (hpBarPrefab == null) return;
+
+        if (hpBarInstance == null)
+        {
+            hpBarInstance = Instantiate(hpBarPrefab, transform.position, Quaternion.identity);
+            hpBarInstance.Attach(transform);
+        }
+
+        // ì˜¤í”„ì…‹ì€ ìë™ ê³„ì‚° ì¶”ì²œ
+        hpBarInstance.worldOffset = new Vector3(0f, GetAutoOffsetY(), 0f);
+        hpBarInstance.visibleTime = hpBarVisibleTime;
+
+        hpBarInstance.Show(Hp01);
+    }
+
+    float GetAutoOffsetY()
+    {
+        if (spriter == null) return 0.8f;
+        return spriter.bounds.extents.y + 0.2f;
+    }
     void Die()
     {
         isDead = true;
@@ -82,10 +115,18 @@ public class Enemy2 : MonoBehaviour, IDamageable
             rb.constraints = RigidbodyConstraints2D.FreezeAll;
         }
 
-        
-        if (ani != null) ani.SetTrigger("Die");
+        var col = GetComponent<Collider2D>();
+        if (col) col.enabled = false;
 
-        // death Å¬¸³ ±æÀÌ¿¡ ¸Â°Ô Á¶Àı (´ëÃæ 0.6~1.2)
+        // âœ… ì£½ìŒ ì´ë²¤íŠ¸ ë¨¼ì € í˜¸ì¶œ (ê²½í—˜ì¹˜/ë“œë ì²˜ë¦¬)
+        OnDied?.Invoke(this);
+
+        // âœ… ì²´ë ¥ë°” ì •ë¦¬
+        if (hpBarInstance != null)
+            Destroy(hpBarInstance.gameObject);
+
+        if (ani != null) ani.SetTrigger("Die");
+        // death í´ë¦½ ê¸¸ì´ì— ë§ê²Œ ì¡°ì ˆ (ëŒ€ì¶© 0.6~1.2)
         Destroy(gameObject, 0.6f);
     }
 
@@ -115,11 +156,12 @@ public class Enemy2 : MonoBehaviour, IDamageable
 
     System.Collections.IEnumerator HitFlash()
     {
-        // Èò»ö/È¸»ö ±ôºı(¿øÇÏ¸é »ö º¯°æ)
+        // í°ìƒ‰/íšŒìƒ‰ ê¹œë¹¡(ì›í•˜ë©´ ìƒ‰ ë³€ê²½)
         spriter.color = Color.gray;
         yield return new WaitForSeconds(0.05f);
         spriter.color = Color.white;
     }
+    public float Hp01 => (maxHP <= 0) ? 0f : (float)currentHP / maxHP;
 }
 
 

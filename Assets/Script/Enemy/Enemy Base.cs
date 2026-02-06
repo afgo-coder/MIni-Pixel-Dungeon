@@ -22,7 +22,7 @@ public class Enemy : MonoBehaviour, IDamageable
     WorldHPBar hpBarInstance;
 
     [Header("State")]
-    bool isDead;
+    public bool isDead;
     bool isHit;
 
     [Header("Hit Recover")]
