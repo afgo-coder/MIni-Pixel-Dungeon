@@ -9,6 +9,12 @@ public class Enemy : MonoBehaviour, IDamageable
     [Header("HP")]
     public int maxHp = 3;
     int hp;
+    int baseMaxHP;
+
+    [Header("HP Scaling")]
+    public int levelStep = 5;        
+    public float stepMultiplier = 1.05f; 
+
 
     [Header("References")]
     public Animator ani;
@@ -37,6 +43,22 @@ public class Enemy : MonoBehaviour, IDamageable
 
     void Start()
     {
+        baseMaxHP = maxHp;
+
+        // ✅ 플레이어 레벨 가져오기
+        int playerLevel = 1;
+        var ps = FindFirstObjectByType<PlayerStats>();
+        if (ps != null) playerLevel = ps.level;   // PlayerStats에 level 필드가 있다고 가정
+
+        // ✅ 5레벨마다 5%씩 HP 증가
+        int tier = Mathf.Max(0, playerLevel / 5);
+        int flatBonusPerTier = 5;        // 고정 증가량
+        float percentPerTier = 1.05f;    // 퍼센트 증가량
+
+        int flat = flatBonusPerTier * tier;
+        float mult = Mathf.Pow(percentPerTier, tier);
+
+        maxHp = Mathf.Max(1, Mathf.RoundToInt((baseMaxHP + flat) * mult));
         hp = maxHp;
 
         rb = GetComponent<Rigidbody2D>();
@@ -83,13 +105,23 @@ public class Enemy : MonoBehaviour, IDamageable
         }
     }
 
-    public void TakeDamage(int dmg)
+    // ✅ 인터페이스 구현 (float)
+    public void TakeDamage(float damage)
+    {
+        if (isDead) return;
+        if (damage <= 0f) return;
+
+        int dmgInt = Mathf.CeilToInt(damage); // <-- 규칙: 올림(추천)
+        TakeDamageInt(dmgInt);
+    }
+
+    // ✅ 기존 로직을 int 전용으로 분리 (기존 TakeDamage(int) 내용을 여기로)
+    void TakeDamageInt(int dmg)
     {
         if (isDead) return;
 
         hp -= dmg;
 
-        // ✅ 피격 시 월드 체력바 표시/갱신
         ShowHpBar();
 
         if (hp <= 0)
@@ -98,7 +130,6 @@ public class Enemy : MonoBehaviour, IDamageable
             return;
         }
 
-        // Hit 처리 (안 죽었을 때)
         isHit = true;
         hitTimer = hitStunTime;
 
@@ -147,7 +178,18 @@ public class Enemy : MonoBehaviour, IDamageable
 
         isDead = true;
         isHit = false;
+        if (ani != null)
+        {
+            ani.ResetTrigger("Hit");
+            ani.ResetTrigger("Die");
+            ani.SetFloat("Speed", 0f);
 
+            // 1) 가장 안전: 즉시 죽음 상태로 강제 이동 (상태명은 너 Animator에 맞춰)
+            // ani.Play("Die", 0, 0f);
+
+            // 2) 상태명 모르겠으면 트리거로라도 보장
+            ani.SetTrigger("Die");
+        }
         var col = GetComponent<Collider2D>();
         if (col) col.enabled = false;
 
@@ -165,8 +207,16 @@ public class Enemy : MonoBehaviour, IDamageable
         if (hpBarInstance != null)
             Destroy(hpBarInstance.gameObject);
 
-        if (ani != null) ani.SetTrigger("Die");
-        Destroy(gameObject, 1.0f);
+        float dieLen = 1.0f;
+        if (ani != null)
+        {
+            // 현재 상태 길이를 못 믿는 경우가 있어서, AnimationClip을 인스펙터로 넣는게 더 확실
+            var st = ani.GetCurrentAnimatorStateInfo(0);
+            // 트리거 직후엔 아직 상태가 안 바뀔 수 있으니 최소 0.6~1.2로 클램프
+            dieLen = Mathf.Clamp(st.length, 0.6f, 2.0f);
+        }
+
+        Destroy(gameObject, dieLen);
     }
 
     // 애니메이션 이벤트에서 호출

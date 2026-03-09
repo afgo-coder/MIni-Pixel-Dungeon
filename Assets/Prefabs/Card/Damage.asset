@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e7213617830db944d8a6f9cfc820ebba, type: 3}
   m_Name: Damage
   m_EditorClassIdentifier: 
-  title: "\uD654\uC57D\uBCF4\uCDA9"
-  desc: "\uB370\uBBF8\uC9C0 +1"
-  icon: {fileID: 0}
+  title: Damage
+  desc: Damage+
+  icon: {fileID: 7935601446555619316, guid: 31fbf31b0761a8545819248488940759, type: 3}
   type: 0
   value: 1

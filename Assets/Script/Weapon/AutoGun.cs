@@ -97,6 +97,9 @@ public class AutoGun : MonoBehaviour
 
         if (isBursting) return;
 
+        if (currentWeapon.fireSfx != null && !currentWeapon.playFireSfxPerBullet)
+            SoundManager.Instance?.PlayGunShot(currentWeapon.fireSfx, 1f);
+
         switch (currentWeapon.shotMode)
         {
             case ShotMode.Single:
@@ -151,21 +154,48 @@ public class AutoGun : MonoBehaviour
 
     void FireOne(Quaternion rot)
     {
+        // Single 모드에서만 멀티샷 적용
+        if (currentWeapon != null && currentWeapon.shotMode == ShotMode.Single)
+        {
+
+            int count = Mathf.Max(1, currentWeapon.bulletsPerShot);
+
+            for (int i = 0; i < count; i++)
+            {
+                SpawnBulletOnce(rot);
+            }
+            return;
+        }
+
+        // Burst / Spread는 기존대로 1발
+        SpawnBulletOnce(rot);
+    }
+
+    void SpawnBulletOnce(Quaternion rot)
+    {
+        if (currentWeapon.fireSfx != null && currentWeapon.playFireSfxPerBullet)
+            SoundManager.Instance?.PlayGunShot(currentWeapon.fireSfx, 1f);
+
         GameObject go = Instantiate(currentWeapon.bulletPrefab, firePoint.position, rot);
 
         var bullet = go.GetComponent<Bullet>();
         if (bullet != null)
         {
             bullet.Init(
-                currentWeapon.damage,
-                currentWeapon.pierce,
-                currentWeapon.bulletSpeed,
-                currentWeapon.bulletLifeTime,
-                bulletHitMask,
-                bullet.skin
-            );
-
+           currentWeapon.damage,
+           currentWeapon.pierce,
+           currentWeapon.ricochet,
+           currentWeapon.ricochetRange,
+           currentWeapon.bulletSpeed,
+           currentWeapon.bulletLifeTime,
+           bulletHitMask,
+           currentWeapon.critChance,
+           currentWeapon.critMultiplier,
+           currentWeapon.rangeMultiplier,
+           bullet.skin
+       );
             bullet.Fire(go.transform.right);
         }
     }
 }
+

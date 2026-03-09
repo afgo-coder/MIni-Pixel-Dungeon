@@ -31,10 +31,17 @@ public class WaveSpawnManager : MonoBehaviour
     public TextMeshProUGUI timeText;
     public TextMeshProUGUI restText;
 
+    [Header("Spawn Random Range")]
+    public float horizontalSpawnRange = 8f; // 위/아래에서 좌우 퍼짐
+    public float verticalSpawnRange = 4.5f; // 좌/우에서 위아래 퍼짐
+
+
     // Wave 6 클리어 이벤트
     public System.Action OnGameClear;
 
-    int currentWave = 1;
+    //int currentWave = 1;
+    int displayWave = 1;
+    int ruleWave = 1;
 
     // 웨이브6에서 Enemy4 총 30마리 제한
     int enemy4SpawnedThisWave = 0;
@@ -43,39 +50,61 @@ public class WaveSpawnManager : MonoBehaviour
     void Start()
     {
         if (targetCamera == null) targetCamera = Camera.main;
+        int saved = PlayerPrefs.GetInt(GameModeData.ModeKey, 0);
+        mode = (saved == 1) ? GameMode.Infinite : GameMode.Basic;
         StartCoroutine(WaveLoop());
+        Debug.Log($"[WaveSpawnManager] mode = {mode}");
     }
 
     IEnumerator WaveLoop()
     {
         while (true)
         {
-            // 웨이브 시작 UI
-            SetWaveUI(currentWave);
+            SetWaveUI(displayWave);
             SetRestUI(false, 0f);
 
-            // 웨이브 진행
-            yield return StartCoroutine(RunWave(currentWave));
+            // ✅ 웨이브 진행: 이제 "시간 끝 + 남은 적 전부 처치"까지 여기서 기다림
+            yield return StartCoroutine(RunWave(ruleWave));
 
             // 웨이브 종료 처리
             CleanupEnemiesOutsideCamera();
 
-            // 여기서 "Wave 6 끝" 확정이므로, Basic이면 클리어 이벤트 쏘고 종료
-            if (mode == GameMode.Basic && currentWave >= 6)
+            // ✅ Basic 마지막 웨이브: 남은 적을 전부 잡고 RunWave가 끝났으면 -> 2초 뒤 클리어
+            if (mode == GameMode.Basic && displayWave >= 6)
             {
+                var ps = FindFirstObjectByType<PlayerStats>();
+                if (ps != null)
+                {
+                    // 플레이어가 죽었다면 클리어 안 띄우고 종료
+                    if (ps.IsDead) yield break;
+
+                    ps.MarkGameEnded();
+                }
+
+                var dmg = FindFirstObjectByType<PlayerDamageReceiver>();
+                if (dmg != null) dmg.enabled = false;
+
+                // ✅ 2초 뒤 클리어 UI (시간 정지/일시정지 영향을 안 받게 Realtime 추천)
+                yield return new WaitForSecondsRealtime(2f);
+
                 OnGameClear?.Invoke();
-                yield break; // 이후 Rest/다음웨이브 로직 안 타게 막기
+                yield break;
             }
 
-            // 휴식 시작
+            // ✅ 마지막 웨이브가 아니면, 적 전부 처치 후 여기로 와서 Rest 진행
             yield return StartCoroutine(RunRest());
 
-            // 다음 웨이브 결정
-            currentWave = GetNextWave(currentWave);
+            displayWave++;
 
-            // (기존 종료 로직은 사실상 위에서 막히지만, 혹시 모드/로직 변경 대비로 유지)
-            if (mode == GameMode.Basic && currentWave == -1)
-                yield break;
+            if (mode == GameMode.Infinite)
+            {
+                if (displayWave <= 6) ruleWave = displayWave;
+                else ruleWave = (ruleWave == 6) ? 5 : 6;
+            }
+            else
+            {
+                ruleWave = displayWave;
+            }
         }
     }
 
@@ -86,12 +115,14 @@ public class WaveSpawnManager : MonoBehaviour
         float timer = waveDuration;
         float spawnTimer = 0f;
 
+        // -------------------------
+        // 1) 타이머 동안: 스폰 + 시간 UI
+        // -------------------------
         while (timer > 0f)
         {
             timer -= Time.deltaTime;
             spawnTimer += Time.deltaTime;
 
-            // UI: 남은 웨이브 시간
             SetTimeUI(timer);
 
             if (spawnTimer >= spawnInterval)
@@ -107,8 +138,22 @@ public class WaveSpawnManager : MonoBehaviour
             yield return null;
         }
 
-        // 웨이브 끝 UI 정리
+        // 타이머 종료 UI 정리
         SetTimeUI(0f);
+
+        // -------------------------
+        // 2) 타이머 끝난 뒤: 스폰 중단, 남은 적 전부 처치될 때까지 대기
+        // -------------------------
+        while (CountAliveEnemies() > 0)
+        {
+            // 플레이어 죽었으면 더 진행할 의미 없으니 종료
+            var ps = FindFirstObjectByType<PlayerStats>();
+            if (ps != null && ps.IsDead) yield break;
+
+            yield return null;
+        }
+
+        // 여기까지 오면 "그 웨이브의 적을 전부 잡음"
     }
 
     IEnumerator RunRest()
@@ -149,18 +194,6 @@ public class WaveSpawnManager : MonoBehaviour
         }
 
         restText.text = $"Rest {Mathf.CeilToInt(Mathf.Max(0f, seconds))}";
-    }
-
-    int GetNextWave(int wave)
-    {
-        if (mode == GameMode.Basic)
-        {
-            if (wave >= 6) return -1;
-            return wave + 1;
-        }
-
-        if (wave < 6) return wave + 1;
-        return (wave == 6) ? 5 : 6;
     }
 
     void SpawnByWaveRule(int wave)
@@ -235,9 +268,23 @@ public class WaveSpawnManager : MonoBehaviour
         Transform sp = spawnPoints[Random.Range(0, spawnPoints.Length)];
 
         Vector3 pos = sp.position;
+
+        // 이름 기준으로 방향 판별 (Top/Bottom/Left/Right)
+        string n = sp.name.ToLower();
+
+        if (n.Contains("top") || n.Contains("bottom"))
+        {
+            pos.x += Random.Range(-horizontalSpawnRange, horizontalSpawnRange);
+        }
+        else if (n.Contains("left") || n.Contains("right"))
+        {
+            pos.y += Random.Range(-verticalSpawnRange, verticalSpawnRange);
+        }
+
         pos.z = 0f;
         Instantiate(prefab, pos, Quaternion.identity);
     }
+
 
     int CountAliveEnemies()
     {

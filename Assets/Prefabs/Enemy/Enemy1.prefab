@@ -223,7 +223,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f549b573d48fafd44962f3e4a0d4f362, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  expValue: 10
+  expValue: 15
   healPickupPrefab: {fileID: 394003410894063801, guid: 17fbcf69ca19fcd428ceccda00a33cc3, type: 3}
   healDropChance: 0.1
 --- !u!114 &-4910200876304762748

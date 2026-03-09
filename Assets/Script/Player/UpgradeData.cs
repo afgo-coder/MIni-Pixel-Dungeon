@@ -7,7 +7,11 @@ public enum UpgradeType
     BulletsPerShotPlus,
     PiercePlus,
     MoveSpeedPlus,
-    MaxHpPlus
+    RicochetPlus,
+    MaxHpPlus,
+    RangePlus,
+    CritChancePlus,
+    CritMultiplierPlus,
 }
 
 [CreateAssetMenu(menuName = "Vamp/UpgradeData")]

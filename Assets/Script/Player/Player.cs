@@ -9,23 +9,42 @@ public class Player : MonoBehaviour
     public PlayerStats stats;
 
     [Header("Death UI")]
-    public GameObject gameOverPanel; // 씬에 있는 패널(처음엔 비활성 추천)
+    public GameObject gameOverPanel;
 
     [Header("I-Frame Visual")]
     public float blinkDuration = 0.4f;
     public float blinkInterval = 0.06f;
 
+    [Header("Boundary")]
+    public LayerMask wallMask;
+
     Animator ani;
     SpriteRenderer spriter;
-    
 
     bool isDead;
     Coroutine blinkCo;
+
+    // ✅ 슬라이딩 충돌 체크용
+    Rigidbody2D rb;
+    Collider2D col;
+    ContactFilter2D filter;
+    RaycastHit2D[] hits = new RaycastHit2D[8];
+
+    // ✅ 입력 저장(Update에서 갱신, FixedUpdate에서 사용)
+    Vector2 moveInput;
 
     void Start()
     {
         ani = GetComponent<Animator>();
         spriter = GetComponent<SpriteRenderer>();
+
+        rb = GetComponent<Rigidbody2D>();
+        col = GetComponent<Collider2D>();
+
+        filter = new ContactFilter2D();
+        filter.useLayerMask = true;
+        filter.layerMask = wallMask;
+        filter.useTriggers = true;
 
         if (stats == null) stats = GetComponent<PlayerStats>();
 
@@ -49,9 +68,10 @@ public class Player : MonoBehaviour
         float inputX = Input.GetAxisRaw("Horizontal");
         float inputY = Input.GetAxisRaw("Vertical");
 
-        Vector2 dir = new Vector2(inputX, inputY).normalized;
-        transform.Translate(dir * moveSpeed * Time.deltaTime, Space.World);
+        // ✅ 입력은 Update에서 저장
+        moveInput = new Vector2(inputX, inputY).normalized;
 
+        // 애니/플립은 Update에서 처리 (부드럽게)
         float speed = new Vector2(inputX, inputY).magnitude;
         if (ani != null) ani.SetFloat("Speed", speed);
 
@@ -62,7 +82,56 @@ public class Player : MonoBehaviour
         }
     }
 
-    // PlayerDamageReceiver가 맞을 때 이거 호출해주면 깜빡임 가능
+    void FixedUpdate()
+    {
+        if (isDead) return;
+
+        // ✅ 이동은 물리 프레임에서
+        Vector2 delta = moveInput * moveSpeed * Time.fixedDeltaTime;
+        MoveWithSlide(delta);
+    }
+
+    void MoveWithSlide(Vector2 delta)
+    {
+        if (delta == Vector2.zero) return;
+
+        // Rigidbody2D/Collider2D 없으면 안전 fallback
+        if (rb == null || col == null)
+        {
+            transform.Translate(delta, Space.World);
+            return;
+        }
+
+        Vector2 pos = rb.position;
+
+        // X 먼저
+        if (Mathf.Abs(delta.x) > 0f)
+        {
+            Vector2 stepX = new Vector2(delta.x, 0f);
+            if (!WillHit(stepX))
+                pos += stepX;
+        }
+
+        // Y 다음 (벽 타기)
+        if (Mathf.Abs(delta.y) > 0f)
+        {
+            Vector2 stepY = new Vector2(0f, delta.y);
+            if (!WillHit(stepY))
+                pos += stepY;
+        }
+
+        rb.MovePosition(pos);
+    }
+
+    bool WillHit(Vector2 delta)
+    {
+        int count = col.Cast(delta.normalized, filter, hits, delta.magnitude);
+        return count > 0;
+    }
+
+    // ------------------------
+    // Hit Blink
+    // ------------------------
     public void PlayHitBlink()
     {
         if (isDead) return;
@@ -85,17 +154,19 @@ public class Player : MonoBehaviour
         blinkCo = null;
     }
 
+    // ------------------------
+    // Death
+    // ------------------------
     void HandleDied()
     {
         if (isDead) return;
         isDead = true;
 
-        // 이동/조작 막기 원하면 collider/rigidbody도 끄기 가능
-        GetComponent<Collider2D>().enabled = false;
+        var c = GetComponent<Collider2D>();
+        if (c != null) c.enabled = false;
 
         if (ani != null) ani.SetTrigger("Die");
 
-        // 1초 뒤 게임오버
         StartCoroutine(GameOverRoutine());
     }
 
@@ -106,3 +177,4 @@ public class Player : MonoBehaviour
             gameOverPanel.SetActive(true);
     }
 }
+

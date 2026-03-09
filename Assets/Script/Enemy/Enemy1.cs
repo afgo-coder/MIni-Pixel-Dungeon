@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class Enemy1 : MonoBehaviour,IDamageable
+public class Enemy1 : MonoBehaviour
 {
     [Header("Move")]
     public float moveSpeed = 1.5f;

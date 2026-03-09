@@ -12,7 +12,7 @@ public class GameClearUI : MonoBehaviour
 
     [Header("Scene")]
     public string mainMenuSceneName = "MainMenu";
-    public string gameSceneName = "Game";
+    public string weaponSceneName = "WeaponMenu";
 
     void Awake()
     {
@@ -71,12 +71,18 @@ public class GameClearUI : MonoBehaviour
     public void OnClickRetry()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        Debug.Log($"[MainMenuUI] Start Clicked. Will load: {weaponSceneName}");
+        Debug.Log($"[MainMenuUI] CanLoad? {Application.CanStreamedLevelBeLoaded(weaponSceneName)}");
+        Time.timeScale = 1f; // »§Ω√ ¿Ã¿¸ æ¿ø°º≠ ∏ÿ√Ë¿ª ∞ÊøÏ ¥Î∫Ò
+        SceneManager.LoadScene(weaponSceneName);
     }
 
     public void OnClickMainMenu()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        Debug.Log($"[MainMenuUI] Start Clicked. Will load: {mainMenuSceneName}");
+        Debug.Log($"[MainMenuUI] CanLoad? {Application.CanStreamedLevelBeLoaded(mainMenuSceneName)}");
+        Time.timeScale = 1f; // »§Ω√ ¿Ã¿¸ æ¿ø°º≠ ∏ÿ√Ë¿ª ∞ÊøÏ ¥Î∫Ò
+        SceneManager.LoadScene(mainMenuSceneName);
     }
 }

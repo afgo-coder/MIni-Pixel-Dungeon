@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e7213617830db944d8a6f9cfc820ebba, type: 3}
   m_Name: Bullet++
   m_EditorClassIdentifier: 
-  title: "\uD0C4\uC57D\uBCF4\uCDA9"
-  desc: "\uCD1D\uC54C \uBC1C\uC0AC\uC218 +1"
-  icon: {fileID: 0}
+  title: Ammo+
+  desc: Fire bullet+1
+  icon: {fileID: -4126002494130540264, guid: e0960f187f5ee3249bd9080749ed043e, type: 3}
   type: 2
   value: 1

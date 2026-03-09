@@ -79,6 +79,7 @@ public class PlayerDamageReceiver : MonoBehaviour
         if (enemyDmg != null) dmg = enemyDmg.contactDamage;
 
         stats.TakeDamage(dmg);
+        SoundManager.Instance?.PlaySfx(SfxId.Hit);
 
         invTimer = invincibleTime;
         tickTimer = tickInterval;

@@ -169,7 +169,12 @@ MonoBehaviour:
   lifeTime: 3
   damage: 1
   pierce: 0
+  ricochet: 0
+  ricochetRange: 2.5
   hitMask:
     serializedVersion: 2
     m_Bits: 8
   skin: 0.02
+  critPopupPrefabUI: {fileID: 4720573569439686249, guid: 62fbe7354a0817542acbd172f1363807, type: 3}
+  popupRoot: {fileID: 0}
+  worldYOffset: 0.6

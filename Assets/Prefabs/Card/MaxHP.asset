@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e7213617830db944d8a6f9cfc820ebba, type: 3}
   m_Name: MaxHP
   m_EditorClassIdentifier: 
-  title: "\uB9E5\uC8FC!"
-  desc: "\uCD5C\uB300\uCCB4\uB825 + 10"
-  icon: {fileID: 0}
-  type: 5
+  title: HP+
+  desc: MaxHP+
+  icon: {fileID: -7417563520330602127, guid: 55d3f62353d80964698d513b42b2347a, type: 3}
+  type: 6
   value: 10

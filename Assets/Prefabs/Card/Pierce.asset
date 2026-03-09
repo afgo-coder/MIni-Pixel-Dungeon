@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e7213617830db944d8a6f9cfc820ebba, type: 3}
   m_Name: Pierce
   m_EditorClassIdentifier: 
-  title: "\uCCA0\uAC11\uD0C4"
-  desc: "\uAD00\uD1B5\uAC00\uB2A5 +1"
-  icon: {fileID: 0}
+  title: Sharp
+  desc: Bullet pierce+
+  icon: {fileID: 717338056163360216, guid: 30d842cbf8237be41891a7953ad740fd, type: 3}
   type: 3
   value: 1

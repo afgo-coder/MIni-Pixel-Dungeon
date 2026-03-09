@@ -1,17 +1,25 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class HUDUI : MonoBehaviour
 {
     [Header("Bars (Filled Image)")]
-    public Image playerHpFill; // 초록
-    public Image expFill;      // 파랑
+    public Image playerHpFill;
+    public Image expFill;
+
+    [Header("Value Text (TMP)")]
+    public TextMeshProUGUI hpValueText;   // 예: 100/100
+    public TextMeshProUGUI expValueText;  // 예: 30/120
 
     [Header("Refs")]
     public PlayerStats player;
 
     void Start()
     {
+        if (player == null)
+            player = FindFirstObjectByType<PlayerStats>();
+
         if (player != null)
             player.OnChanged += Refresh;
 
@@ -26,10 +34,18 @@ public class HUDUI : MonoBehaviour
 
     void Refresh()
     {
-        if (playerHpFill != null && player != null)
+        if (player == null) return;
+
+        if (playerHpFill != null)
             playerHpFill.fillAmount = player.Hp01;
 
-        if (expFill != null && player != null)
+        if (expFill != null)
             expFill.fillAmount = player.Exp01;
+
+        if (hpValueText != null)
+            hpValueText.text = $"{player.currentHP}/{player.maxHP}";
+
+        if (expValueText != null)
+            expValueText.text = $"{player.currentExp}/{player.expPerLevel}";
     }
 }

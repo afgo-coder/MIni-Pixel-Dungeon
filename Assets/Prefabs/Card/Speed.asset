@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e7213617830db944d8a6f9cfc820ebba, type: 3}
   m_Name: Speed
   m_EditorClassIdentifier: 
-  title: "\uAE30\uBBFC\uD568"
-  desc: "\uB2EC\uB9AC\uAE30\uC18D\uB3C4 +1"
-  icon: {fileID: 0}
+  title: Runner
+  desc: Move Speed+
+  icon: {fileID: -6437156974574431747, guid: 04b51c0b806a91f4b8765323c0043f9a, type: 3}
   type: 4
   value: 0.25

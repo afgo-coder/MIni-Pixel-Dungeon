@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e7213617830db944d8a6f9cfc820ebba, type: 3}
   m_Name: FireRate
   m_EditorClassIdentifier: 
-  title: "\uC18D\uC0AC"
-  desc: "\uC5F0\uC0AC\uC18D\uB3C4 +1"
-  icon: {fileID: 0}
+  title: Gunner
+  desc: Firerate+
+  icon: {fileID: 2831320846880532866, guid: 988c53989be456c418d09cc7cd5741d5, type: 3}
   type: 1
-  value: 0.2
+  value: 0.125

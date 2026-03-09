@@ -209,6 +209,7 @@ MonoBehaviour:
   hpBarPrefab: {fileID: 2764991719352572303, guid: 78e5741224f6a3e4e89eaf61b502c801, type: 3}
   hpBarOffset: {x: 0, y: 0.8, z: 0}
   hpBarVisibleTime: 2
+  isDead: 0
   hitStunTime: 0.15
 --- !u!114 &2003208778519970177
 MonoBehaviour:
@@ -222,7 +223,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f549b573d48fafd44962f3e4a0d4f362, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  expValue: 20
+  expValue: 30
   healPickupPrefab: {fileID: 394003410894063801, guid: 17fbcf69ca19fcd428ceccda00a33cc3, type: 3}
   healDropChance: 0.1
 --- !u!114 &1473290216568223937
@@ -238,4 +239,3 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   contactDamage: 15
-  hitInterval: 0.4
